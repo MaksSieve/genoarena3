@@ -27,19 +27,19 @@ class Gene:
 
 class Genome:
 
-    str: Gene
-    con: Gene
-    dex: Gene
-    wis: Gene
+    strength: Gene
+    constitution: Gene
+    dexterity: Gene
+    wisdom: Gene
 
     gene_len: int
     gene_mag: int
 
     def __init__(self, gene_len = 10, gene_mag = 10) -> None:
-        self.str = Gene([randint(0, gene_mag) for _ in range(0, gene_len)], gene_mag)
-        self.con = Gene([randint(0, gene_mag) for _ in range(0, gene_len)], gene_mag)
-        self.dex = Gene([randint(0, gene_mag) for _ in range(0, gene_len)], gene_mag)
-        self.wis = Gene([randint(0, gene_mag) for _ in range(0, gene_len)], gene_mag)
+        self.strength = Gene([randint(0, gene_mag) for _ in range(0, gene_len)], gene_mag)
+        self.constitution = Gene([randint(0, gene_mag) for _ in range(0, gene_len)], gene_mag)
+        self.dexterity = Gene([randint(0, gene_mag) for _ in range(0, gene_len)], gene_mag)
+        self.wisdom = Gene([randint(0, gene_mag) for _ in range(0, gene_len)], gene_mag)
         self.gene_len = gene_len
         self.gene_mag = gene_mag
 
@@ -61,10 +61,10 @@ class Genome:
             d1, d2 = chs[4], chs[1]
 
 
-            g.str = Gene(a1 + a2)
-            g.con = Gene(b1 + b2)
-            g.dex = Gene(c1 + c2)
-            g.wis = Gene(d1 + d2)
+            g.strength = Gene(a1 + a2)
+            g.constitution = Gene(b1 + b2)
+            g.dexterity = Gene(c1 + c2)
+            g.wisdom = Gene(d1 + d2)
             
             return g
         else:
@@ -75,21 +75,21 @@ class Genome:
     def __hash__(self):
         # generate a hash from the genome sequence
         #
-        # initialy genome contains 4 genes those are splitting in to two pieces:
-        # str: a1|a2, dex: b1|b2, con: c1|c2, wis: d1|d2
+        # initialy genome consttains 4 genes those are splitting in to two pieces:
+        # str: a1|a2, dex: b1|b2, const: c1|c2, wis: d1|d2
         #
         # than it recombinates as
         # a1d2b2c1d1a2c2b1
 
-        a1, a2 = self.str.structure[:int(self.gene_len/2)], self.str.structure[int(self.gene_len/2):]
-        b1, b2 = self.con.structure[:int(self.gene_len/2)], self.con.structure[int(self.gene_len/2):]
-        c1, c2 = self.dex.structure[:int(self.gene_len/2)], self.dex.structure[int(self.gene_len/2):]
-        d1, d2 = self.wis.structure[:int(self.gene_len/2)], self.wis.structure[int(self.gene_len/2):]
+        a1, a2 = self.strength.structure[:int(self.gene_len/2)], self.strength.structure[int(self.gene_len/2):]
+        b1, b2 = self.constitution.structure[:int(self.gene_len/2)], self.constitution.structure[int(self.gene_len/2):]
+        c1, c2 = self.dexterity.structure[:int(self.gene_len/2)], self.dexterity.structure[int(self.gene_len/2):]
+        d1, d2 = self.wisdom.structure[:int(self.gene_len/2)], self.wisdom.structure[int(self.gene_len/2):]
 
         return (a1 + d2 + b2 + c1 + d1 + a2 + c2 + b1)
 
     def __str__(self) -> str:
-        return f"str: {self.str.structure}\ncon: {self.con.structure}\ndex: {self.dex.structure}\nwis: {self.wis.structure}"
+        return f"str: {self.strength.structure}\nconst: {self.constitution.structure}\ndex: {self.dexterity.structure}\nwis: {self.wisdom.structure}"
 
 def crossingover(g_left, g_right, magnitude = 0.1):
 
