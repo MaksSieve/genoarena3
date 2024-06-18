@@ -6,6 +6,7 @@ import logging
 from random import randint
 from typing import Any, List
 from pykka import ActorRef, ThreadingActor
+import pykka
 
 from core.common import Point, distance
 import core.messages as messages
@@ -62,7 +63,6 @@ class Warrior(ThreadingActor):
 
 		match type(message):
 			case  messages.WarriorStart:
-
 				self.state = WarriorState.WAITING_VISION
 				self.arena.tell(messages.VisionRequest(sender=self.actor_ref))
 
@@ -79,36 +79,47 @@ class Warrior(ThreadingActor):
 				for w in vision:
 					w.tell(messages.PositionRequest(sender = self.actor_ref))
 				
-
 			case messages.PositionResponse:
-				if self.state == WarriorState.WAITING_POSITIONS:
-					self.targetBuffer.append(Target(message.sender, message.position))
+				match self.state:
+					case WarriorState.WAITING_POSITIONS:
+						self.targetBuffer.append(Target(message.sender, message.position))
+						self.target = self.detectTarget()
+						self.logger.info(f"Target detected: {self.target} (distance {distance(self.position, self.target.pos)}). Start Hunting")
 
-					self.target = self.detectTarget()
+						self.state = WarriorState.HUNTING
 
-					self.logger.info(f"Target detected: {self.target} (distance {distance(self.position, self.target.pos)}). Start Hunting")
-
-					self.state = WarriorState.HUNTING
-
-				if self.state == WarriorState.HUNTING and message.sender is self.target.ref:
-					if self.unsuccessfull_moves_counter > 3:
-						
-						self.logger.info("hunt failed....")
-
-						self.state = WarriorState.WAITING_VISION
-						self.arena.tell(messages.VisionRequest(sender=self.actor_ref))
-					else:
 						self.hunt()
+					
+					case WarriorState.HUNTING:
+						if message.sender is self.target.ref:
+							if self.unsuccessfull_moves_counter > 3:
+						
+								self.logger.info("hunt failed....")
 
+								self.state = WarriorState.WAITING_VISION
+								self.arena.tell(messages.VisionRequest(sender=self.actor_ref))
+							else:
+								self.hunt()
+		
 			case messages.Attack:
 				self.hp -= message.damage
-
 				if self.hp <= 0:
+					pykka.ActorRegistry.broadcast(messages.Dead(sender = self.actor_ref))
 					self.stop()
-
+				else:
+					self.state = WarriorState.WAITING_POSITIONS
+					self.target.ref.tell(messages.PositionRequest(sender = self.actor_ref))
+			
+			case messages.Dead:
+				filter(lambda t: t.ref != message.sender.ref, self.targetBuffer)
+				if message.sender is self.target.ref:
+					self.target.ref = None
+					self.actor_ref.tell(messages.WarriorStart(sender = self.actor_ref))
+				else:
+					self.hunt()
+				
 	def detectTarget(self):
 		min_d = 100*100
-		
 		target = None
 
 		for w in self.targetBuffer:
@@ -119,7 +130,6 @@ class Warrior(ThreadingActor):
 
 		return target
 	
-
 	def moveToTarget(self):
 		factor = self.speed / distance(self.position, self.target.pos)
 		d = self.target.pos - self.position
@@ -138,7 +148,6 @@ class Warrior(ThreadingActor):
 
 
 	def hunt(self):
-		
 		if (distance(self.position, self.target.pos) > self.attack_rad):
 			self.moveToTarget()
 			self.target.ref.tell(

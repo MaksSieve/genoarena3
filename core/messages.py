@@ -32,6 +32,10 @@ class Attack(WarriorMessage):
 	damage: float
 
 @dataclass
+class Dead(WarriorMessage):
+	pass
+
+@dataclass
 class ArenaStart(ArenaMessage):
 	pass
 
