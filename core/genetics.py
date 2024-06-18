@@ -110,3 +110,24 @@ def crossingover(g_left, g_right, magnitude = 0.1):
         g_left_hash[i], g_right_hash[i] = g_right_hash[i], g_left_hash[i]
 
     return Genome.from_hash(g_left_hash), Genome.from_hash(g_right_hash)
+
+
+class PhenoType:
+
+    max_hp: int
+    dmg: Callable[[], int]
+    vision_depth: int
+    speed: int
+
+    def __init__(self, genome: Genome) -> None:
+        self.max_hp = (int(sum(genome.constitution.structure) / genome.constitution.structure_length
+        + (sum(genome.strength.structure) / 2) / genome.strength.structure_length)) * 100
+
+        def dmg_roll() -> int :
+            return genome.strength.roll + int(genome.dexterity.roll / 2)
+
+        self.dmg = dmg_roll
+
+        self.vision_depth = int(sum(genome.wisdom.structure) / (1.5 * genome.wisdom.structure_length))
+
+        self.speed = int(sum(genome.dexterity.structure) / (2 * genome.dexterity.structure_length))
