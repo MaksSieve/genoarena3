@@ -36,6 +36,10 @@ class Dead(WarriorMessage):
 	pass
 
 @dataclass
+class WarriorStop(WarriorMessage):
+	pass
+
+@dataclass
 class ArenaStart(ArenaMessage):
 	pass
 
@@ -54,4 +58,5 @@ class PositionResponse(ArenaMessage):
 @dataclass
 class NewWarrior(ArenaMessage):
 	warrior: ActorRef
+
 

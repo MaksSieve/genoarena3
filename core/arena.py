@@ -48,6 +48,23 @@ class Arena(ThreadingActor):
 			case messages.NewWarrior:
 				self.warriors.append(message.warrior)
 
+			case messages.Dead:
+				self.warriors = list(filter(lambda w: w is message.sender, self.warriors))
+				if len(self.warriors) == 1:
+					self.warriors[0].tell(messages.WarriorStop(sender = self.actor_ref))
+
+					self.stop()
+	
+	def on_stop(self):
+		winner_name = self.warriors[0].proxy().name.get()
+		self.logger.info("=== Fight finished! ===")
+		self.logger.info(f"Winner is {winner_name}")
+		self.warriors[0].stop()
+
+					
+
+
+
 
 
 		 
